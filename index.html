@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>AMB Theme Gradient Generator</title>
+<style>
+body{
+  margin:0; font-family: Arial, sans-serif; background:#121212; color:#fff; display:flex; flex-direction:column; align-items:center; padding:20px;
+}
+h1{color:#38bdf8; margin-bottom:20px;}
+.container{display:flex; flex-wrap:wrap; gap:20px; justify-content:center; width:100%;}
+#outputBox{
+  width:450px; height:400px; border-radius:15px; display:flex; justify-content:center; align-items:center;
+  font-size:24px; font-weight:bold; text-shadow:2px 2px 5px #000; transition: all 0.5s; flex-shrink:0;
+}
+#controlBox{
+  width:400px; padding:20px; background:#1f1f1f; border-radius:15px; display:flex; flex-direction:column; gap:10px; flex-shrink:0;
+}
+label{font-size:14px;}
+input[type=color], input[type=range], select, input[type=text]{width:100%; padding:5px; border-radius:5px; border:none; margin-top:5px;}
+button{padding:10px; background:#38bdf8; color:#000; font-weight:bold; border:none; border-radius:5px; cursor:pointer; margin-top:10px;}
+#cssCode{margin-top:10px; padding:10px; background:#333; border-radius:5px; font-family:monospace; word-break:break-all;}
+</style>
+</head>
+<body>
+
+<h1>AMB Theme Gradient Generator 🌈</h1>
+
+<div class="container">
+  <div id="outputBox">Sample Text</div>
+
+  <div id="controlBox">
+    <label>Gradient Type:</label>
+    <select id="gradType">
+      <option value="linear">Linear</option>
+      <option value="radial">Radial</option>
+      <option value="conic">Conic</option>
+      <option value="repeating-linear">Repeating Linear</option>
+      <option value="repeating-radial">Repeating Radial</option>
+    </select>
+
+    <label>Start Color:</label>
+    <input type="color" id="color1" value="#3498db">
+    <label>Middle Color (optional):</label>
+    <input type="color" id="color2" value="#8e44ad">
+    <label>End Color:</label>
+    <input type="color" id="color3" value="#e74c3c">
+
+    <label>Opacity (0-1):</label>
+    <input type="range" id="opacity" min="0" max="1" step="0.01" value="1">
+
+    <label>Angle / Position (0-360°):</label>
+    <input type="range" id="angle" min="0" max="360" value="90">
+
+    <label>Filter:</label>
+    <select id="filter">
+      <option value="none">None</option>
+      <option value="brightness(0.7)">Dark</option>
+      <option value="brightness(1.2)">Bright</option>
+      <option value="sepia(0.5)">Sepia</option>
+      <option value="grayscale(0.5)">Grayscale</option>
+    </select>
+
+    <label>Text Color (auto or choose):</label>
+    <input type="color" id="textColor" value="#ffffff">
+
+    <button id="randomBtn">Random Gradient</button>
+    <button id="copyBtn">Copy CSS Code</button>
+    <div id="cssCode">CSS code will appear here...</div>
+  </div>
+</div>
+
+<script>
+const outputBox=document.getElementById("outputBox");
+const gradType=document.getElementById("gradType");
+const color1=document.getElementById("color1");
+const color2=document.getElementById("color2");
+const color3=document.getElementById("color3");
+const opacity=document.getElementById("opacity");
+const angle=document.getElementById("angle");
+const filter=document.getElementById("filter");
+const textColor=document.getElementById("textColor");
+const cssCode=document.getElementById("cssCode");
+const randomBtn=document.getElementById("randomBtn");
+const copyBtn=document.getElementById("copyBtn");
+
+function updateGradient(){
+  const colors=[color1.value,color2.value,color3.value].filter(c=>c);
+  const ang=angle.value+"deg";
+  let gradStr="";
+  switch(gradType.value){
+    case "linear": gradStr=`linear-gradient(${ang}, ${colors.join(", ")})`; break;
+    case "radial": gradStr=`radial-gradient(circle, ${colors.join(", ")})`; break;
+    case "conic": gradStr=`conic-gradient(${colors.join(", ")})`; break;
+    case "repeating-linear": gradStr=`repeating-linear-gradient(${ang}, ${colors.join(", ")})`; break;
+    case "repeating-radial": gradStr=`repeating-radial-gradient(circle, ${colors.join(", ")})`; break;
+  }
+  outputBox.style.background=gradStr;
+  outputBox.style.opacity=opacity.value;
+  outputBox.style.filter=filter.value;
+
+  // Auto text color if user didn't change manually
+  if(!textColor.value) {
+    const avg=(parseInt(color1.value.substr(1,2),16)+parseInt(color1.value.substr(3,2),16)+parseInt(color1.value.substr(5,2),16)
+              +parseInt(color2.value.substr(1,2),16)+parseInt(color2.value.substr(3,2),16)+parseInt(color2.value.substr(5,2),16))/6;
+    outputBox.style.color=(avg<128)?"#fff":"#000";
+  } else {
+    outputBox.style.color=textColor.value;
+  }
+
+  cssCode.innerText=`background: ${gradStr};\nfilter: ${filter.value};\ncolor: ${outputBox.style.color};\nopacity: ${opacity.value};`;
+}
+
+// Random Generator
+function randomColor(){ return '#'+Math.floor(Math.random()*16777215).toString(16).padStart(6,'0'); }
+function randomGradient(){
+  color1.value=randomColor();
+  color2.value=randomColor();
+  color3.value=randomColor();
+  angle.value=Math.floor(Math.random()*360);
+  opacity.value=(Math.random()*0.5+0.5).toFixed(2);
+  const filters=["none","brightness(0.7)","brightness(1.2)","sepia(0.5)","grayscale(0.5)"];
+  filter.value=filters[Math.floor(Math.random()*filters.length)];
+  textColor.value="";
+  updateGradient();
+}
+
+[color1,color2,color3,opacity,angle,filter,gradType,textColor].forEach(el=>{
+  el.addEventListener("input",updateGradient);
+});
+
+randomBtn.addEventListener("click",randomGradient);
+copyBtn.addEventListener("click",()=>{navigator.clipboard.writeText(cssCode.innerText); alert("CSS Code copied!");});
+
+updateGradient(); // Initial
+</script>
+
+</body>
+</html>
